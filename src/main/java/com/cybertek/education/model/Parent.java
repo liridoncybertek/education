@@ -40,7 +40,7 @@ public class Parent extends BaseEntity{
 
     private String profession;
 
-    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id", nullable = false)
     private Address address;
 

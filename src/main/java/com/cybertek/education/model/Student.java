@@ -43,7 +43,7 @@ public class Student extends BaseEntity{
     @Enumerated(EnumType.STRING)
     private Status status;
 
-    @OneToOne(cascade = CascadeType.ALL, optional = false)
+    @OneToOne(cascade = CascadeType.ALL, optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id", nullable = false)
     @JsonManagedReference
     private Address address;

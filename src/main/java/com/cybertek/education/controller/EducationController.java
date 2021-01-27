@@ -1,25 +1,25 @@
 package com.cybertek.education.controller;
 
-import com.cybertek.education.model.*;
 import com.cybertek.education.model.Class;
+import com.cybertek.education.model.*;
 import com.cybertek.education.repository.*;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 public class EducationController {
 
+
     private final AddressRepository addressRepository;
 
-    private final AttendanceRepository attendanceRepository;
 
     private final ClassRepository classRepository;
 
-    private final ExamRepository examRepository;
-
-    private final ExamResultRepository examResultRepository;
 
     private final ParentRepository parentRepository;
 
@@ -29,30 +29,40 @@ public class EducationController {
 
     private final CourseRepository courseRepository;
 
-    public EducationController(AddressRepository addressRepository, AttendanceRepository attendanceRepository,
-                               ClassRepository classRepository, ExamRepository examRepository,
-                               ExamResultRepository examResultRepository, ParentRepository parentRepository,
-                               StudentRepository studentRepository, TeacherRepository teacherRepository, CourseRepository courseRepository) {
+    private final RestTemplate restTemplate;
+
+    public EducationController(AddressRepository addressRepository, ClassRepository classRepository,
+                               ParentRepository parentRepository, StudentRepository studentRepository,
+                               TeacherRepository teacherRepository, CourseRepository courseRepository,
+                               RestTemplate restTemplate) {
         this.addressRepository = addressRepository;
-        this.attendanceRepository = attendanceRepository;
         this.classRepository = classRepository;
-        this.examRepository = examRepository;
-        this.examResultRepository = examResultRepository;
         this.parentRepository = parentRepository;
         this.studentRepository = studentRepository;
         this.teacherRepository = teacherRepository;
         this.courseRepository = courseRepository;
+        this.restTemplate = restTemplate;
     }
 
-
     @GetMapping("/students")
-    public List<Student> readAllStudents() {
-        return studentRepository.findAll();
+    public ResponseEntity<ResponseWrapper> readAllStudents() {
+        ResponseWrapper responseWrapper = ResponseWrapper.builder()
+                .success(true)
+                .code(HttpStatus.OK.value())
+                .message("Students are successfully retrieved")
+                .data(studentRepository.findAll())
+                .build();
+       return ResponseEntity.ok(responseWrapper);
     }
 
     @GetMapping("/parents")
-    public List<Parent> readAllParents() {
-        return parentRepository.findAll();
+    public ResponseEntity<ResponseWrapper> readAllParents() {
+        ResponseWrapper responseWrapper = new ResponseWrapper(true,
+                "Parents are successfully retrieved",
+                HttpStatus.ACCEPTED.value(),
+                parentRepository.findAll());
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(responseWrapper);
     }
 
     @GetMapping("/teachers")
@@ -60,10 +70,7 @@ public class EducationController {
         return teacherRepository.findAll();
     }
 
-    @GetMapping("/attends")
-    public List<Attendance> readAllAttends() {
-        return attendanceRepository.findAll();
-    }
+
 
     @GetMapping("/classes")
     public List<Class> readAllClasses() {
@@ -76,18 +83,36 @@ public class EducationController {
     }
 
 
-    @GetMapping("/exams")
-    public List<Exam> readAllExams() {
-        return examRepository.findAll();
-    }
-
-    @GetMapping("/exam-result")
-    public List<ExamResult> readAllExamResults() {
-        return examResultRepository.findAll();
-    }
-
     @GetMapping("/addresses")
     public List<Address> readAllAddresses() {
         return addressRepository.findAll();
+    }
+
+
+    @PutMapping("/address/{id}")
+    public Address updateAddress(@PathVariable("id") Long id, @RequestBody Address address) throws Exception {
+
+        Optional<Address> foundAddress = addressRepository.findById(id);
+
+        if (!foundAddress.isPresent()) {
+            throw new Exception("Address does not exists!");
+        }
+
+        address.setId(foundAddress.get().getId());
+
+        return addressRepository.save(address);
+    }
+
+    @PostMapping("/parent")
+    public ResponseEntity<ResponseWrapper> createParent(@RequestBody Parent parent) {
+
+        Parent createdParent = parentRepository.save(parent);
+
+        ResponseWrapper responseWrapper = new ResponseWrapper(true,
+                "Parent has been created",
+                HttpStatus.CREATED.value(),
+                createdParent);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseWrapper);
     }
 }

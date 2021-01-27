@@ -23,3 +23,4 @@ public class Course extends BaseEntity{
     private String description;
 
 }
+
